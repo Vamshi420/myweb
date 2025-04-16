@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+
+    environment {
+        SONARQUBE_SERVER = 'SonarQube' // Name of the SonarQube instance configured in Jenkins
+        SONAR_TOKEN = credentials('SONAR_TOKEN') // Use the secret ID you set in Jenkins credentials
+    }
+
+    tools {
+        maven 'Maven 3.8.5' // Your configured Maven version name in Jenkins
+    }
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                git url: 'https://github.com/yourusername/your-repo.git', branch: 'master'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh "mvn sonar:sonar -Dsonar.projectKey=myweb -Dsonar.token=${SONAR_TOKEN}"
+                }
+            }
+        }
+    }
+}
